@@ -1,0 +1,150 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ task.title }}{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="badge bg-{{ task.status == 'completed' ? 'success' : (task.status == 'rejected' ? 'danger' : (task.status == 'in_progress' ? 'warning' : 'secondary')) }} me-2">
+                            {{ task.statusLabel }}
+                        </span>
+                        {% if task.isSubtask %}
+                            <span class="badge bg-info">Podzadanie</span>
+                        {% endif %}
+                    </div>
+                    <div>
+                        {% if not task.isSubtask and is_granted('ROLE_ADMIN') %}
+                        <a href="{{ path('app_task_subtask_new', {'id': task.id}) }}" class="btn btn-outline-primary me-2">
+                            <i class="bi bi-plus-circle me-1"></i>
+                            Dodaj podzadanie
+                        </a>
+                        {% endif %}
+                        {% if is_granted('ROLE_ADMIN') %}
+                        <a href="{{ path('app_task_edit', {'id': task.id}) }}" class="btn btn-primary">
+                            <i class="bi bi-pencil me-1"></i>
+                            Edytuj
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h1 class="card-title">{{ task.title }}</h1>
+                    
+                    {% if task.description %}
+                        <div class="mb-4">
+                            <h5>Opis</h5>
+                            <p class="text-muted">{{ task.description|nl2br }}</p>
+                        </div>
+                    {% endif %}
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6>Data utworzenia</h6>
+                            <p>{{ task.createdAt|date('d.m.Y H:i') }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Ostatnia aktualizacja</h6>
+                            <p>{{ task.updatedAt|date('d.m.Y H:i') }}</p>
+                        </div>
+                    </div>
+
+                    {% if task.estimatedHours or task.actualHours %}
+                        <div class="row mb-4">
+                            {% if task.estimatedHours %}
+                                <div class="col-md-6">
+                                    <h6>Szacowane godziny</h6>
+                                    <p>{{ task.estimatedHours }}h</p>
+                                </div>
+                            {% endif %}
+                            {% if task.actualHours %}
+                                <div class="col-md-6">
+                                    <h6>Rzeczywiste godziny</h6>
+                                    <p>{{ task.actualHours }}h</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+
+                    {% if task.assignedUser %}
+                        <div class="mb-4">
+                            <h6>Przypisane do</h6>
+                            <p>
+                                <i class="bi bi-person me-1"></i>
+                                {{ task.assignedUser.email }}
+                            </p>
+                        </div>
+                    {% endif %}
+
+                    {% if task.parentTask %}
+                        <div class="mb-4">
+                            <h6>Zadanie główne</h6>
+                            <a href="{{ path('app_task_show', {'id': task.parentTask.id}) }}" class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-arrow-up me-1"></i>
+                                {{ task.parentTask.title }}
+                            </a>
+                        </div>
+                    {% endif %}
+
+                    {% if task.subtasks|length > 0 %}
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="card-title mb-0">
+                                    <i class="bi bi-list-nested me-2"></i>
+                                    Podzadania
+                                </h5>
+                                {% if is_granted('ROLE_ADMIN') %}
+                                <a href="{{ path('app_task_subtask_new', {'id': task.id}) }}" class="btn btn-outline-primary btn-sm">
+                                    <i class="bi bi-plus-circle me-1"></i>
+                                    Dodaj podzadanie
+                                </a>
+                                {% endif %}
+                            </div>
+                            <div class="row">
+                                {% for subtask in task.subtasks %}
+                                    <div class="col-md-6 mb-3">
+                                        <div class="card">
+                                            <div class="card-body">
+                                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                                    <h6 class="card-title mb-0">{{ subtask.title }}</h6>
+                                                    <span class="badge bg-{{ subtask.status == 'completed' ? 'success' : (subtask.status == 'rejected' ? 'danger' : (subtask.status == 'in_progress' ? 'warning' : 'secondary')) }}">
+                                                        {{ subtask.statusLabel }}
+                                                    </span>
+                                                </div>
+                                                {% if subtask.description %}
+                                                    <p class="card-text text-muted small">{{ subtask.description|length > 80 ? subtask.description|slice(0, 80) ~ '...' : subtask.description }}</p>
+                                                {% endif %}
+                                                <div class="btn-group btn-group-sm w-100">
+                                                    <a href="{{ path('app_task_show', {'id': subtask.id}) }}" class="btn btn-outline-primary btn-sm">
+                                                        <i class="bi bi-eye me-1"></i>
+                                                        Szczegóły
+                                                    </a>
+                                                    {% if is_granted('ROLE_ADMIN') %}
+                                                    <a href="{{ path('app_task_edit', {'id': subtask.id}) }}" class="btn btn-outline-secondary btn-sm">
+                                                        <i class="bi bi-pencil me-1"></i>
+                                                        Edytuj
+                                                    </a>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer">
+                    <a href="{{ path('app_task_index') }}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left me-1"></i>
+                        Powrót do listy
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
