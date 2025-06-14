@@ -3,7 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Task;
-use App\Form\TaskType;
+use App\Form\TaskTypeForm;
 use App\Repository\TaskRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -40,7 +40,7 @@ class TaskController extends AbstractController
     public function new(Request $request): Response
     {
         $task = new Task();
-        $form = $this->createForm(TaskType::class, $task);
+        $form = $this->createForm(TaskTypeForm::class, $task);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -69,7 +69,7 @@ class TaskController extends AbstractController
     #[IsGranted('ROLE_ADMIN')]
     public function edit(Request $request, Task $task): Response
     {
-        $form = $this->createForm(TaskType::class, $task);
+        $form = $this->createForm(TaskTypeForm::class, $task);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -112,7 +112,7 @@ class TaskController extends AbstractController
         $subtask = new Task();
         $subtask->setParentTask($parentTask);
         
-        $form = $this->createForm(TaskType::class, $subtask);
+        $form = $this->createForm(TaskTypeForm::class, $subtask);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
